@@ -24,6 +24,18 @@ export function LibraryReceipt({ library }: { library: PlaylistLibrary }) {
         {fmt(totalTracks)} tracks · {fmt(averageSize)} avg
       </p>
 
+      {total === 0 ? (
+        <>
+          <hr className="my-3.5 border-0 border-t border-dashed border-paper-line" />
+          <p className="py-2 text-paper-muted">
+            No playlists yet. Make or follow a few in Spotify and they&apos;ll
+            show up here.
+          </p>
+          <hr className="my-3.5 border-0 border-t border-dashed border-paper-line" />
+          <Barcode />
+        </>
+      ) : (
+        <>
       <Section label="Breakdown">
         <Row left="Owned" right={fmt(owned)} />
         <Row left="Followed" right={fmt(followed)} />
@@ -61,6 +73,8 @@ export function LibraryReceipt({ library }: { library: PlaylistLibrary }) {
       )}
 
       <Barcode />
+        </>
+      )}
     </Receipt>
   );
 }

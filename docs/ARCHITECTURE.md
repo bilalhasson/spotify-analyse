@@ -309,11 +309,14 @@ src/
       ReceiptImage.tsx     # Satori-only renderer for the shareable PNG
       LibraryReceipt.tsx   # playlist-library receipt (DOM) — reuses primitives + Meter
   app/
+    layout.tsx      # metadata (OG/Twitter default -> /api/og), theme-color, fonts
     page.tsx        # landing — receipt with "Log in with Spotify"
+    loading.tsx · error.tsx · not-found.tsx   # branded receipt states
     dashboard/page.tsx     # prefetches all 3 ranges; renders <ReceiptStage>
     playlists/page.tsx     # playlist Library receipt
     s/page.tsx      # PUBLIC share page — renders a token's receipt + OG/Twitter meta
     api/
+      og/route.tsx          # PUBLIC static 1200x630 brand card for link unfurls
       auth/login/route.ts     # start the OAuth handshake
       auth/callback/route.ts  # verify state, exchange code, store tokens + identity
       auth/refresh/route.ts   # renew an expired access token

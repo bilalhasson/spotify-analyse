@@ -1,6 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { buildReceiptModel, topDecadeShare } from "@/lib/receipt";
+import { buildReceiptModel, isReceiptEmpty, topDecadeShare } from "@/lib/receipt";
 import type { Artist, Play, Track } from "@/lib/musicData";
+
+describe("isReceiptEmpty", () => {
+  const base = buildReceiptModel({
+    displayName: "x",
+    range: "short_term",
+    artists: [],
+    tracks: [],
+    recent: [],
+  });
+  it("is true when there is no listening data", () => {
+    expect(isReceiptEmpty(base)).toBe(true);
+  });
+  it("is false when there is any data", () => {
+    const withData = buildReceiptModel({
+      displayName: "x",
+      range: "short_term",
+      artists: [{ id: "1", name: "A", genres: [] }],
+      tracks: [],
+      recent: [],
+    });
+    expect(isReceiptEmpty(withData)).toBe(false);
+  });
+});
 
 describe("topDecadeShare", () => {
   it("returns the dominant decade and its rounded share", () => {

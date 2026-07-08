@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { ReceiptModel } from "@/lib/receipt";
+import { isReceiptEmpty, type ReceiptModel } from "@/lib/receipt";
 import { receiptTheme as t } from "@/lib/receiptTheme";
 
 /**
@@ -65,6 +65,15 @@ export function ReceiptImage({ model }: { model: ReceiptModel }) {
           </div>
         </div>
 
+        {isReceiptEmpty(model) && (
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <ImgDivider />
+            <div style={{ display: "flex", color: t.muted, fontSize: 22, marginTop: 4 }}>
+              No listening on record for this window yet.
+            </div>
+          </div>
+        )}
+
         {topArtist && (
           <div style={{ display: "flex", flexDirection: "column", marginTop: 34 }}>
             <div style={{ display: "flex", color: t.accent, fontSize: 17, fontWeight: 700, letterSpacing: 2.5, textTransform: "uppercase" }}>
@@ -81,17 +90,21 @@ export function ReceiptImage({ model }: { model: ReceiptModel }) {
           </div>
         )}
 
-        <ImgSection label="On heavy rotation">
-          {otherArtists.map((a) => (
-            <ImgRow key={a.rank} rank={a.rank} left={a.name} bold />
-          ))}
-        </ImgSection>
+        {otherArtists.length > 0 && (
+          <ImgSection label="On heavy rotation">
+            {otherArtists.map((a) => (
+              <ImgRow key={a.rank} rank={a.rank} left={a.name} bold />
+            ))}
+          </ImgSection>
+        )}
 
-        <ImgSection label="Top tracks">
-          {topTracks.map((track) => (
-            <ImgRow key={track.rank} rank={track.rank} left={track.name} right={track.value} />
-          ))}
-        </ImgSection>
+        {topTracks.length > 0 && (
+          <ImgSection label="Top tracks">
+            {topTracks.map((track) => (
+              <ImgRow key={track.rank} rank={track.rank} left={track.name} right={track.value} />
+            ))}
+          </ImgSection>
+        )}
 
         {genres.length > 0 && (
           <ImgSection label="Genre mix">

@@ -6,7 +6,7 @@ import type { ReceiptModel } from "@/lib/receipt";
 
 // Fonts are bundled in the repo and read at request time (Node runtime), so no
 // network fetch is needed to render the image.
-function fonts() {
+export function ogFonts() {
   const dir = join(process.cwd(), "src/og-fonts");
   return [
     { name: "Geist Mono", data: readFileSync(join(dir, "GeistMono-400.woff")), weight: 400 as const, style: "normal" as const },
@@ -19,6 +19,6 @@ export function renderReceiptImage(model: ReceiptModel) {
   return new ImageResponse(<ReceiptImage model={model} />, {
     width: 720,
     height: 1280,
-    fonts: fonts(),
+    fonts: ogFonts(),
   });
 }

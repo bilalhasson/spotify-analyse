@@ -27,6 +27,16 @@ export interface ReceiptModel {
   topDecade?: { decade: string; share: number };
 }
 
+/** True when a range has no listening data to show (e.g. a new account). */
+export function isReceiptEmpty(model: ReceiptModel): boolean {
+  return (
+    !model.topArtist &&
+    model.otherArtists.length === 0 &&
+    model.topTracks.length === 0 &&
+    model.recent.length === 0
+  );
+}
+
 const MONTHS = [
   "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
   "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",

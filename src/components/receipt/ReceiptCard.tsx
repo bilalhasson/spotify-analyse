@@ -1,4 +1,4 @@
-import type { ReceiptModel } from "@/lib/receipt";
+import { isReceiptEmpty, type ReceiptModel } from "@/lib/receipt";
 import { Barcode } from "./Barcode";
 import { RankRow } from "./RankRow";
 import { Receipt } from "./Receipt";
@@ -34,6 +34,18 @@ export function ReceiptCard({ model }: { model: ReceiptModel }) {
         {displayName} · {dateLabel}
       </p>
 
+      {isReceiptEmpty(model) ? (
+        <>
+          <hr className="my-3.5 border-0 border-t border-dashed border-paper-line" />
+          <p className="py-2 text-paper-muted">
+            No listening on record for this window yet. Play some music and check
+            back — or try a longer time range.
+          </p>
+          <hr className="my-3.5 border-0 border-t border-dashed border-paper-line" />
+          <Barcode />
+        </>
+      ) : (
+        <>
       {topArtist && (
         <div>
           <p className="mb-0.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-accent">
@@ -91,6 +103,8 @@ export function ReceiptCard({ model }: { model: ReceiptModel }) {
       )}
 
       <Barcode />
+        </>
+      )}
     </Receipt>
   );
 }

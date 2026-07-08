@@ -201,9 +201,23 @@ New apps are heavily restricted, and the plan is built around what actually work
   Premium** (Feb 2026). No public signups.
 - **Extended quota** (which would lift these) is org-only and unreachable for a portfolio app.
 
-`/api/probe` empirically records the live status of each endpoint for *this* app so later
-phases only build on confirmed-usable data. All external data sits behind a `MusicDataSource`
-interface (introduced in Phase 1) so the source is swappable.
+`/api/probe` empirically records the live status of each endpoint for *this* app. Results for a
+client ID created **2026-07-08**:
+
+| Endpoint | Status | Use |
+|---|---|---|
+| `GET /me` (profile) | ✅ 200 | user identity |
+| `GET /me/top/artists` (3 time ranges) | ✅ 200 | top artists |
+| `GET /me/top/tracks` (3 time ranges) | ✅ 200 | top tracks |
+| `GET /me/player/recently-played` | ✅ 200 | recently played |
+| `GET /me/tracks` (saved) | ✅ 200 | library insights |
+| `GET /me/playlists` | ✅ 200 | playlist analysis |
+| `GET /audio-features/{id}` | ❌ 403 | dead — mood/energy unavailable |
+| `GET /recommendations` | ❌ 404 | dead — recommendations unavailable |
+
+Every endpoint the plan needs (Option A, stats-only) returns 200; the two dead ones confirm the
+excluded features. All external data sits behind a `MusicDataSource` interface (introduced in
+Phase 1) so the source is swappable.
 
 ---
 

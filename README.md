@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# spotify-analyse
 
-## Getting Started
+A retro-receipt view of your Spotify listening stats — top artists, tracks, and genres,
+rendered as a shareable "receipt". A portfolio project built around a correct, server-side
+**OAuth 2.0 (Authorization Code + PKCE)** flow against the Spotify Web API.
 
-First, run the development server:
+🔗 **Live:** https://spotify-analyse-production.up.railway.app
+📐 **Architecture & auth deep-dive:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+
+## Stack
+
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v4 · iron-session · pnpm 10.25 ·
+Node 24 · Vitest · GitHub Actions CI · Railway (push-to-deploy).
+
+## Local development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local     # fill in SPOTIFY_CLIENT_ID + SESSION_SECRET
+pnpm install
+pnpm dev                       # http://127.0.0.1:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+You need a Spotify app (Client ID) with `http://127.0.0.1:3000/api/auth/callback` registered as
+a redirect URI, and your Spotify account added to the app's allowlist. No client secret is
+required — this is a pure PKCE flow. See [`.env.example`](.env.example).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | What |
+|---|---|
+| `pnpm dev` | Dev server |
+| `pnpm build` / `pnpm start` | Production build / serve |
+| `pnpm lint` | ESLint |
+| `pnpm typecheck` | `tsc --noEmit` |
+| `pnpm test` | Vitest |
 
-## Learn More
+## Deploy
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Push to `main` → GitHub Actions CI (`install → lint → typecheck → test → build`) → Railway
+auto-deploys. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#deploy-pipeline-push-to-deploy).

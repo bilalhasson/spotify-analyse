@@ -164,7 +164,8 @@ Stats are cached with the **Next.js Data Cache** (`unstable_cache`) — no datab
 - **Token as a closure, not a key** — the access token is captured inside the cached function,
   not part of the cache key, so the hourly token refresh doesn't bust the cache. The token is
   only used on a miss.
-- **TTL + tag** — entries revalidate after 1h and are tagged `stats:<userId>`.
+- **TTL + tag** — top stats revalidate after 1h, recently-played after 5m; all tagged
+  `stats:<userId>`.
 - **Manual refresh** — `GET /api/stats/refresh` calls `revalidateTag("stats:<userId>", { expire: 0 })`
   (Next 16 requires the profile arg) to purge that user's stats on demand, then bounces back.
 
@@ -215,7 +216,7 @@ src/
     env.ts          # lazy env access (client id, redirect uri, session secret, base url)
     session.ts      # iron-session config; getSession(); needsRefresh(); userId/displayName
     spotify.ts      # PKCE helpers, token exchange/refresh, API fetch, SCOPES
-    musicData.ts    # MusicDataSource interface + Spotify impl (cached), topGenres()
+    musicData.ts    # MusicDataSource (top artists/tracks, recently-played; cached) + topGenres/decadeBreakdown
   app/
     page.tsx        # landing — "LOG IN WITH SPOTIFY"
     dashboard/page.tsx     # protected Server Component — top artists/tracks, genres, range toggle
@@ -264,8 +265,8 @@ Phase 1) so the source is swappable.
 ## Roadmap
 
 - **Phase 0 ✅** — walking skeleton, live OAuth (PKCE), endpoint probe.
-- **Phase 1 (in progress)** — core stats dashboard: top tracks/artists (3 ranges) + genre
-  breakdown + caching ✅; recently-played + decade mix (next).
+- **Phase 1 ✅** — core stats dashboard: top tracks/artists (3 ranges), genre breakdown,
+  recently-played, decade mix, per-user caching.
 - **Phase 2** — retro-receipt design system.
 - **Phase 3** — shareable receipt image (the viral mechanic).
 - **Phase 4** — playlist analysis.

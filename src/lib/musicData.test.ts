@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { topGenres, type Artist } from "@/lib/musicData";
+import { decadeBreakdown, topGenres, type Artist, type Track } from "@/lib/musicData";
 
 describe("topGenres", () => {
   it("counts genres across artists, most common first", () => {
@@ -21,5 +21,20 @@ describe("topGenres", () => {
     ];
     expect(() => topGenres(artists)).not.toThrow();
     expect(topGenres(artists)).toEqual([{ genre: "pop", count: 1 }]);
+  });
+});
+
+describe("decadeBreakdown", () => {
+  it("buckets tracks by decade, oldest first, ignoring unknown years", () => {
+    const tracks: Track[] = [
+      { id: "1", name: "a", artists: [], releaseYear: 1998 },
+      { id: "2", name: "b", artists: [], releaseYear: 1995 },
+      { id: "3", name: "c", artists: [], releaseYear: 2011 },
+      { id: "4", name: "d", artists: [] }, // no releaseYear -> skipped
+    ];
+    expect(decadeBreakdown(tracks)).toEqual([
+      { decade: "1990s", count: 2 },
+      { decade: "2010s", count: 1 },
+    ]);
   });
 });

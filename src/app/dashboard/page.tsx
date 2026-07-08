@@ -3,6 +3,7 @@ import { getSession, needsRefresh } from "@/lib/session";
 import { spotifyGet } from "@/lib/spotify";
 import {
   createSpotifyDataSource,
+  decadeBreakdown,
   isTimeRange,
   TIME_RANGES,
   topGenres,
@@ -27,11 +28,14 @@ export default async function Dashboard({
     "anon";
 
   const source = createSpotifyDataSource(userId, session.accessToken);
-  const [artists, tracks] = await Promise.all([
+  const [artists, tracks, recent] = await Promise.all([
     source.getTopArtists(range, 10),
-    source.getTopTracks(range, 10),
+    source.getTopTracks(range, 20),
+    source.getRecentlyPlayed(8),
   ]);
+  const topTracks = tracks.slice(0, 10);
   const genres = topGenres(artists);
+  const decades = decadeBreakdown(tracks);
   const rangeLabel = TIME_RANGES.find((r) => r.value === range)?.label ?? "";
 
   return (
@@ -68,7 +72,7 @@ export default async function Dashboard({
         </Section>
 
         <Section title={`TOP TRACKS · ${rangeLabel}`}>
-          {tracks.map((t, i) => (
+          {topTracks.map((t, i) => (
             <Row key={t.id} index={i + 1} left={t.name} right={t.artists[0]} />
           ))}
         </Section>
@@ -79,6 +83,28 @@ export default async function Dashboard({
               <div key={g.genre} className="flex justify-between gap-4">
                 <span>{g.genre}</span>
                 <span className="opacity-60">×{g.count}</span>
+              </div>
+            ))}
+          </Section>
+        )}
+
+        {decades.length > 0 && (
+          <Section title={`DECADES · ${rangeLabel}`}>
+            {decades.map((d) => (
+              <div key={d.decade} className="flex justify-between gap-4">
+                <span>{d.decade}</span>
+                <span className="opacity-60">×{d.count}</span>
+              </div>
+            ))}
+          </Section>
+        )}
+
+        {recent.length > 0 && (
+          <Section title="RECENTLY PLAYED">
+            {recent.map((p) => (
+              <div key={p.playedAt} className="flex justify-between gap-4">
+                <span className="truncate">{p.name}</span>
+                <span className="shrink-0 opacity-60">{p.artist}</span>
               </div>
             ))}
           </Section>

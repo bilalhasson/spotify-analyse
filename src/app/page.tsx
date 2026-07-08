@@ -1,31 +1,29 @@
+import { Barcode, Receipt } from "@/components/receipt";
+
 export default function Home() {
   return (
-    <main className="flex flex-1 items-center justify-center p-6 font-mono">
-      <div className="w-full max-w-sm border border-dashed border-current/40 bg-white/5 p-6 text-sm">
-        <p className="text-center tracking-widest">*** SPOTIFY RECEIPT ***</p>
-        <hr className="my-4 border-dashed border-current/30" />
-        <dl className="space-y-1">
-          <div className="flex justify-between">
-            <dt>STATUS</dt>
-            <dd>WALKING SKELETON</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt>PHASE</dt>
-            <dd>0 — DEPLOY</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt>AUTH</dt>
-            <dd>PKCE READY</dd>
-          </div>
-        </dl>
-        <hr className="my-4 border-dashed border-current/30" />
+    <main className="flex flex-1 items-center justify-center p-6">
+      <Receipt>
+        <p className="text-center text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-accent">
+          Now serving
+        </p>
+        <h1 className="mt-1 text-center font-sans text-[26px] font-extrabold uppercase leading-[0.95] tracking-[-0.02em]">
+          Your Spotify, printed
+        </h1>
+        <hr className="my-4 border-0 border-t border-dashed border-paper-line" />
+        <p className="text-paper-muted">
+          A receipt of what you&apos;ve been listening to — top artists, tracks,
+          genres, and the decades they came from.
+        </p>
+        <hr className="my-4 border-0 border-t border-dashed border-paper-line" />
         <a
           href="/api/auth/login"
-          className="block border border-dashed border-current/50 py-2 text-center tracking-widest hover:bg-white/10"
+          className="block rounded-md border-2 border-accent py-2.5 text-center font-extrabold uppercase tracking-[0.14em] text-accent transition-colors hover:bg-accent hover:text-paper"
         >
-          LOG IN WITH SPOTIFY
+          Log in with Spotify
         </a>
-      </div>
+        <Barcode />
+      </Receipt>
     </main>
   );
 }

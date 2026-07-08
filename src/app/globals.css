@@ -1,26 +1,137 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #ece9e2;
+  --foreground: #1b1915;
+  --paper: #fbfaf7;
+  --paper-ink: #1a1712;
+  --paper-muted: #8a8479;
+  --paper-line: #c9c3b6;
+  --paper-shadow: rgba(40, 34, 22, 0.18);
+  --accent: #c23a26;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #100f0d;
+    --foreground: #ece7db;
+    --paper: #1b1a16;
+    --paper-ink: #ece5d5;
+    --paper-muted: #8c8574;
+    --paper-line: #3a372f;
+    --paper-shadow: rgba(0, 0, 0, 0.5);
+    --accent: #f0664f;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-paper: var(--paper);
+  --color-paper-ink: var(--paper-ink);
+  --color-paper-muted: var(--paper-muted);
+  --color-paper-line: var(--paper-line);
+  --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background:
+    radial-gradient(
+      120% 80% at 50% -10%,
+      color-mix(in oklab, var(--background), white 6%),
+      transparent 60%
+    ),
+    var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Paper surface: halftone dots, scalloped tear edges, soft shadow. */
+  .receipt-paper {
+    --s: 9px;
+    background:
+      radial-gradient(var(--paper-line) 0.8px, transparent 1.1px) 0 0 / 7px 7px,
+      var(--paper);
+    -webkit-mask:
+      radial-gradient(var(--s) at 50% 0, #0000 98%, #000) 50% 0 / 18px var(--s) repeat-x,
+      radial-gradient(var(--s) at 50% 100%, #0000 98%, #000) 50% 100% / 18px var(--s) repeat-x,
+      linear-gradient(#000 0 0) 50% 50% / 100% calc(100% - 2 * var(--s)) no-repeat;
+    mask:
+      radial-gradient(var(--s) at 50% 0, #0000 98%, #000) 50% 0 / 18px var(--s) repeat-x,
+      radial-gradient(var(--s) at 50% 100%, #0000 98%, #000) 50% 100% / 18px var(--s) repeat-x,
+      linear-gradient(#000 0 0) 50% 50% / 100% calc(100% - 2 * var(--s)) no-repeat;
+    filter: drop-shadow(0 14px 28px var(--paper-shadow));
+  }
+
+  .receipt-barcode {
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--paper-ink) 0 2px,
+      transparent 2px 4px,
+      var(--paper-ink) 4px 5px,
+      transparent 5px 8px,
+      var(--paper-ink) 8px 11px,
+      transparent 11px 12px,
+      var(--paper-ink) 12px 13px,
+      transparent 13px 16px
+    );
+    opacity: 0.9;
+  }
+
+  /* Line-reveal print: the paper holds still; its blocks wipe in top-to-bottom.
+     Staggered by --line (assigned per child); re-runs whenever the wrapper is
+     remounted (keyed by range). Reduced-motion users get an instant swap. */
+  .receipt-print {
+    position: relative;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .receipt-print .receipt-paper > * {
+      animation: receipt-line 0.3s both;
+      animation-delay: calc(var(--line, 0) * 42ms);
+    }
+    .receipt-print .receipt-paper > *:nth-child(2) { --line: 1; }
+    .receipt-print .receipt-paper > *:nth-child(3) { --line: 2; }
+    .receipt-print .receipt-paper > *:nth-child(4) { --line: 3; }
+    .receipt-print .receipt-paper > *:nth-child(5) { --line: 4; }
+    .receipt-print .receipt-paper > *:nth-child(6) { --line: 5; }
+    .receipt-print .receipt-paper > *:nth-child(7) { --line: 6; }
+    .receipt-print .receipt-paper > *:nth-child(8) { --line: 7; }
+    .receipt-print .receipt-paper > *:nth-child(9) { --line: 8; }
+    .receipt-print .receipt-paper > *:nth-child(10) { --line: 9; }
+    .receipt-print .receipt-paper > *:nth-child(11) { --line: 10; }
+    .receipt-print .receipt-paper > *:nth-child(n + 12) { --line: 11; }
+
+    @keyframes receipt-line {
+      from {
+        opacity: 0;
+        clip-path: inset(0 0 100% 0);
+      }
+      to {
+        opacity: 1;
+        clip-path: inset(0 0 0 0);
+      }
+    }
+
+    /* accent print-head sweeping down as the lines print */
+    .receipt-print::after {
+      content: "";
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      height: 2px;
+      background: var(--accent);
+      opacity: 0;
+      pointer-events: none;
+      animation: receipt-head 0.62s ease-out;
+    }
+    @keyframes receipt-head {
+      0% { top: 8%; opacity: 0.7; }
+      80% { opacity: 0.7; }
+      100% { top: 96%; opacity: 0; }
+    }
+  }
 }

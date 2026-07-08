@@ -190,6 +190,43 @@ parallel, derives a genre breakdown (`topGenres`), and renders them receipt-styl
 
 ---
 
+## Design system & components (Phase 2)
+
+The look is a **retro-receipt**: monospace data, dashed tear lines, a rubber-stamp accent, a big
+display "#1", halftone paper, and a barcode footer.
+
+**Tokens** live in `src/app/globals.css`. A small palette is defined as CSS custom properties on
+`:root` — warm paper neutrals plus one **vermilion accent** (`--accent`) — and flipped for dark
+mode under `@media (prefers-color-scheme: dark)` (paper becomes dark thermal). They're exposed to
+Tailwind via `@theme` (`bg-paper`, `text-paper-ink`, `text-accent`, …), so components style through
+tokens and both themes come for free. Effects Tailwind can't express — the scalloped edge mask,
+halftone, barcode — are the `.receipt-paper` / `.receipt-barcode` component classes.
+
+**Layering** keeps the page thin and the card reusable:
+
+```
+MusicDataSource (raw Spotify) → buildReceiptModel (lib/receipt.ts) → ReceiptCard (components)
+```
+
+- `lib/receipt.ts` maps raw stats into a `ReceiptModel` view-model (ranks, labels, dominant-decade
+  share, display name + date). Pure and unit-tested.
+- `components/receipt/*` are presentational primitives (`Receipt`, `Section`, `RankRow`, `Row`,
+  `Stamp`, `Barcode`) composed by `ReceiptCard`. `ReceiptCard` takes only a `ReceiptModel` — no
+  fetching — so the **Phase 3 image export can render the exact same card**.
+- The dashboard supplies data + chrome (`TimeRangeToggle`, refresh/logout); the card is chrome-free.
+
+**Motion.** Switching range plays a **line-reveal** print — the paper holds still while its blocks
+wipe in top-to-bottom behind an accent print-head. It's defined once in `globals.css` (reduced-motion
+gated) and re-triggered by remounting the card (`key={range}`). `ReceiptStage` (client) holds the
+range in state and swaps in place; all three ranges are **prefetched on the server**, so switching is
+instant. The toggle is still real `?range=` links — it works without JS and stays deep-linkable
+(synced via `history.replaceState`) — and is progressively enhanced to animate.
+
+> Only real, API-derivable values appear on the receipt — Spotify exposes no per-artist play counts
+> or listening minutes, so those are omitted rather than faked.
+
+---
+
 ## Deploy pipeline (push-to-deploy)
 
 No Railway CLI in the loop — `git push main` is the deploy trigger, gated by CI.
@@ -217,9 +254,15 @@ src/
     session.ts      # iron-session config; getSession(); needsRefresh(); userId/displayName
     spotify.ts      # PKCE helpers, token exchange/refresh, API fetch, SCOPES
     musicData.ts    # MusicDataSource (top artists/tracks, recently-played; cached) + topGenres/decadeBreakdown
+    receipt.ts      # buildReceiptModel view-model + topDecadeShare (pure, tested)
+  components/
+    ReceiptStage.tsx       # client: range state + in-place line-reveal on toggle
+    TimeRangeToggle.tsx    # client: progressive-enhanced range links
+    receipt/               # receipt design-system primitives + composed ReceiptCard
+      Receipt · Stamp · Section · RankRow · Row · Barcode · ReceiptCard · index.ts
   app/
-    page.tsx        # landing — "LOG IN WITH SPOTIFY"
-    dashboard/page.tsx     # protected Server Component — top artists/tracks, genres, range toggle
+    page.tsx        # landing — receipt with "Log in with Spotify"
+    dashboard/page.tsx     # prefetches all 3 ranges; renders <ReceiptStage>
     api/
       auth/login/route.ts     # start the OAuth handshake
       auth/callback/route.ts  # verify state, exchange code, store tokens + identity
@@ -267,6 +310,7 @@ Phase 1) so the source is swappable.
 - **Phase 0 ✅** — walking skeleton, live OAuth (PKCE), endpoint probe.
 - **Phase 1 ✅** — core stats dashboard: top tracks/artists (3 ranges), genre breakdown,
   recently-played, decade mix, per-user caching.
-- **Phase 2** — retro-receipt design system.
+- **Phase 2 ✅** — retro-receipt design system: tokens, receipt component library, `ReceiptCard`,
+  and an animated in-place range toggle (line-reveal print).
 - **Phase 3** — shareable receipt image (the viral mechanic).
 - **Phase 4** — playlist analysis.

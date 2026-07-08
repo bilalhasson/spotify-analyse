@@ -15,8 +15,19 @@ const model = buildReceiptModel({
 });
 
 describe("shareToken", () => {
-  it("round-trips a model through encode/decode", () => {
-    expect(decodeShareToken(encodeShareToken(model))).toEqual(model);
+  it("round-trips the rendered content (topArtist.id is dropped to save space)", () => {
+    const decoded = decodeShareToken(encodeShareToken(model));
+    expect(decoded).toEqual({ ...model, topArtist: { ...model.topArtist!, id: "" } });
+    // everything the renderers actually use survives:
+    expect(decoded?.topArtist?.name).toBe("Fred again..");
+    expect(decoded?.rangeLabel).toBe(model.rangeLabel);
+    expect(decoded?.topTracks).toEqual(model.topTracks);
+  });
+
+  it("produces a shorter token than raw base64 JSON", () => {
+    const token = encodeShareToken(model);
+    const rawLen = Buffer.from(JSON.stringify(model)).toString("base64url").length;
+    expect(token.length).toBeLessThan(rawLen);
   });
 
   it("rejects a tampered payload", () => {

@@ -1,5 +1,6 @@
 import { createSpotifyDataSource, type TimeRange } from "@/lib/musicData";
 import { buildReceiptModel, type ReceiptModel } from "@/lib/receipt";
+import { buildPlaylistLibrary, type PlaylistLibrary } from "@/lib/playlist";
 import { spotifyGet } from "@/lib/spotify";
 import type { SessionData } from "@/lib/session";
 
@@ -56,4 +57,11 @@ export async function loadReceiptModels(
     }),
   );
   return Object.fromEntries(entries) as Record<TimeRange, ReceiptModel>;
+}
+
+export async function loadPlaylistLibrary(session: SessionData): Promise<PlaylistLibrary> {
+  const userId = await resolveUserId(session);
+  const source = createSpotifyDataSource(userId, session.accessToken!);
+  const playlists = await source.getPlaylists();
+  return buildPlaylistLibrary(playlists, userId);
 }

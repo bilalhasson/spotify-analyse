@@ -33,10 +33,21 @@ export interface Play {
   playedAt: string;
 }
 
+export interface Playlist {
+  id: string;
+  name: string;
+  owner: string;
+  ownerId: string;
+  trackCount: number;
+  collaborative: boolean;
+}
+
 export interface MusicDataSource {
   getTopArtists(range: TimeRange, limit?: number): Promise<Artist[]>;
   getTopTracks(range: TimeRange, limit?: number): Promise<Track[]>;
   getRecentlyPlayed(limit?: number): Promise<Play[]>;
+  // Playlist TRACKS are 403 for new apps, so we can only read list metadata.
+  getPlaylists(): Promise<Playlist[]>;
 }
 
 /** Cache tag for a user's stats — invalidate with revalidateTag() on refresh. */
@@ -136,6 +147,45 @@ export function createSpotifyDataSource(
         // Recently-played changes often, so a shorter TTL than top stats.
         ["recently-played", userId, String(limit)],
         { revalidate: FIVE_MIN, tags: [statsTag(userId)] },
+      )(),
+
+    getPlaylists: () =>
+      unstable_cache(
+        async () => {
+          type PlaylistPage = {
+            items: {
+              id: string;
+              name: string;
+              collaborative?: boolean;
+              owner: { id: string; display_name?: string };
+              // Spotify returns the track-count ref as `items`; older/other
+              // responses use `tracks`. Accept either.
+              items?: { total: number };
+              tracks?: { total: number };
+            }[];
+            next: string | null;
+          };
+          const playlists: Playlist[] = [];
+          let url: string | null = "/me/playlists?limit=50";
+          while (url) {
+            const page: PlaylistPage | null = (await spotifyGet<PlaylistPage>(url, accessToken)).data;
+            if (!page) break;
+            for (const p of page.items) {
+              playlists.push({
+                id: p.id,
+                name: p.name,
+                owner: p.owner?.display_name ?? "",
+                ownerId: p.owner?.id ?? "",
+                trackCount: p.items?.total ?? p.tracks?.total ?? 0,
+                collaborative: Boolean(p.collaborative),
+              });
+            }
+            url = page.next ? page.next.replace(/^https:\/\/api\.spotify\.com\/v1/, "") : null;
+          }
+          return playlists;
+        },
+        ["playlists", userId],
+        { revalidate: ONE_HOUR, tags: [statsTag(userId)] },
       )(),
   };
 }

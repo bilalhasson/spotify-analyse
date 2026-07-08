@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { TimeRange } from "@/lib/musicData";
 import type { ReceiptModel } from "@/lib/receipt";
 import { ReceiptCard } from "@/components/receipt";
@@ -57,21 +58,24 @@ export function ReceiptStage({
         Showing {model.rangeLabel}
       </p>
 
-      <nav className="flex items-center gap-4 font-mono text-xs text-foreground/50">
-        <button type="button" onClick={share} className="font-bold text-accent transition-opacity hover:opacity-70">
+      <nav className="flex flex-wrap items-center justify-center gap-4 font-mono text-xs text-foreground/50">
+        <button type="button" onClick={share} className="action font-bold text-accent hover:opacity-70">
           {copied ? "link copied!" : "share"}
         </button>
         <a
-          className="transition-colors hover:text-accent"
+          className="action hover:text-accent"
           href={`/api/receipt-image?range=${range}`}
           download={`receipt-${range}.png`}
         >
           download
         </a>
-        <a className="transition-colors hover:text-accent" href={`/api/stats/refresh?range=${range}`}>
+        <Link className="action hover:text-accent" href="/playlists">
+          playlists
+        </Link>
+        <a className="action hover:text-accent" href={`/api/stats/refresh?range=${range}`}>
           refresh
         </a>
-        <a className="transition-colors hover:text-accent" href="/api/auth/logout">
+        <a className="action hover:text-accent" href="/api/auth/logout">
           log out
         </a>
       </nav>

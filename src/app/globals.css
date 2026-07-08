@@ -134,4 +134,73 @@ body {
       100% { top: 96%; opacity: 0; }
     }
   }
+
+  /* Micro-interaction: a clickable receipt line (playlist index). Row-A —
+     the row lifts, the name goes accent, and a → slides in on hover/focus. */
+  .receipt-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 4px;
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted var(--paper-line);
+  }
+  .receipt-link:last-child {
+    border-bottom: 0;
+  }
+  .receipt-link .receipt-link-arrow {
+    color: var(--accent);
+    opacity: 0;
+  }
+  .receipt-link:hover .receipt-link-name,
+  .receipt-link:focus-visible .receipt-link-name {
+    color: var(--accent);
+  }
+  .receipt-link:hover .receipt-link-arrow,
+  .receipt-link:focus-visible .receipt-link-arrow {
+    opacity: 1;
+  }
+  .receipt-link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .receipt-link {
+      transition: transform 0.16s ease, color 0.16s ease;
+    }
+    .receipt-link .receipt-link-arrow {
+      transition: opacity 0.16s ease, transform 0.16s ease;
+      transform: translateX(-6px);
+    }
+    .receipt-link:hover,
+    .receipt-link:focus-visible {
+      transform: translateY(-2px);
+    }
+    .receipt-link:active {
+      transform: translateY(0);
+    }
+    .receipt-link:hover .receipt-link-arrow,
+    .receipt-link:focus-visible .receipt-link-arrow {
+      transform: translateX(0);
+    }
+  }
+
+  /* Shared interactive affordances for nav actions/buttons. */
+  .action {
+    transition: color 0.16s ease, opacity 0.16s ease;
+  }
+  .action:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .action:active {
+      transform: scale(0.96);
+    }
+  }
 }

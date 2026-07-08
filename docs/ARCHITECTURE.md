@@ -250,6 +250,22 @@ content under our domain. Tokens are compact (~600 chars, well within URL limits
 
 ---
 
+## Playlist library (Phase 4)
+
+`/playlists` shows a **Library receipt** — a collection-level analysis of your playlists: total
+playlists, total tracks, owned vs followed (with % meters), collaborative count, average size, and
+your biggest playlists (Row-A hover links that open in Spotify). It extends `MusicDataSource` with
+`getPlaylists()` and reuses the receipt component library + `Meter`. `buildPlaylistLibrary` (pure,
+tested) derives everything from `/me/playlists` metadata alone.
+
+> **Why collection-level, not per-playlist:** we discovered empirically that
+> `GET /playlists/{id}/tracks` returns **403** for this app — for **owned and followed** playlists
+> alike (a restriction tightened beyond what the Phase 0 probe covered). So per-playlist track
+> composition (genres/decades/standouts) is impossible for a new app; the library overview is the
+> honest feature that the surviving `/me/playlists` metadata supports.
+
+---
+
 ## Deploy pipeline (push-to-deploy)
 
 No Railway CLI in the loop — `git push main` is the deploy trigger, gated by CI.
@@ -276,9 +292,10 @@ src/
     env.ts          # lazy env access (client id, redirect uri, session secret, base url)
     session.ts      # iron-session config; getSession(); needsRefresh(); userId/displayName
     spotify.ts      # PKCE helpers, token exchange/refresh, API fetch, SCOPES
-    musicData.ts    # MusicDataSource (top artists/tracks, recently-played; cached) + topGenres/decadeBreakdown
+    musicData.ts    # MusicDataSource (top stats, recently-played, playlists; cached) + rollups
     receipt.ts      # buildReceiptModel view-model + topDecadeShare (pure, tested)
-    dashboardData.ts# loadReceiptModel(s): shared data-load used by page + image route
+    playlist.ts     # buildPlaylistLibrary view-model (collection stats; pure, tested)
+    dashboardData.ts# shared data-load: receipt models + playlists/analysis
     receiptTheme.ts # palette constants for the Satori image (inline styles)
     og.tsx          # renderReceiptImage(model) -> next/og ImageResponse (bundled fonts)
     shareToken.ts   # sign/verify stateless share tokens (HMAC) for public unfurl
@@ -287,11 +304,14 @@ src/
     ReceiptStage.tsx       # client: range state + in-place line-reveal on toggle
     TimeRangeToggle.tsx    # client: progressive-enhanced range links
     receipt/               # receipt renderers + primitives
-      Receipt · Stamp · Section · RankRow · Row · Barcode · ReceiptCard · index.ts
+      Receipt · Stamp · Section · RankRow · Row · Barcode · Meter · index.ts
+      ReceiptCard.tsx      # personal stats receipt (DOM)
       ReceiptImage.tsx     # Satori-only renderer for the shareable PNG
+      LibraryReceipt.tsx   # playlist-library receipt (DOM) — reuses primitives + Meter
   app/
     page.tsx        # landing — receipt with "Log in with Spotify"
     dashboard/page.tsx     # prefetches all 3 ranges; renders <ReceiptStage>
+    playlists/page.tsx     # playlist Library receipt
     s/page.tsx      # PUBLIC share page — renders a token's receipt + OG/Twitter meta
     api/
       auth/login/route.ts     # start the OAuth handshake
@@ -312,7 +332,8 @@ src/
 New apps are heavily restricted, and the plan is built around what actually works:
 
 - **Permanently 403 for new apps:** audio-features, audio-analysis, recommendations,
-  related-artists, editorial/featured playlists (Nov 2024).
+  related-artists, editorial/featured playlists (Nov 2024), **and playlist tracks
+  (`/playlists/{id}/tracks`) — owned and followed alike** (found in Phase 4, Jul 2026).
 - **Development mode:** max **5 allowlisted users**, and the **app owner must have Spotify
   Premium** (Feb 2026). No public signups.
 - **Extended quota** (which would lift these) is org-only and unreachable for a portfolio app.
@@ -327,7 +348,8 @@ client ID created **2026-07-08**:
 | `GET /me/top/tracks` (3 time ranges) | ✅ 200 | top tracks |
 | `GET /me/player/recently-played` | ✅ 200 | recently played |
 | `GET /me/tracks` (saved) | ✅ 200 | library insights |
-| `GET /me/playlists` | ✅ 200 | playlist analysis |
+| `GET /me/playlists` | ✅ 200 | playlist library metadata |
+| `GET /playlists/{id}/tracks` | ❌ 403 | dead — no per-playlist track access |
 | `GET /audio-features/{id}` | ❌ 403 | dead — mood/energy unavailable |
 | `GET /recommendations` | ❌ 404 | dead — recommendations unavailable |
 
@@ -346,4 +368,5 @@ Phase 1) so the source is swappable.
   and an animated in-place range toggle (line-reveal print).
 - **Phase 3 ✅** — shareable receipt image: 720×1280 PNG via next/og, download, and a public
   signed share link that unfurls (`/s?t=`).
-- **Phase 4** — playlist analysis.
+- **Phase 4 ✅** — playlist **library** overview (per-playlist track access is 403): collection
+  stats — owned/followed meters, biggest playlists, totals — with Row-A micro-interactions.

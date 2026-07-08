@@ -1,20 +1,22 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { env } from "@/lib/env";
 import { getSession } from "@/lib/session";
 import { exchangeCodeForTokens } from "@/lib/spotify";
 
 export async function GET(request: NextRequest) {
   const session = await getSession();
+  const base = env.appBaseUrl();
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const state = searchParams.get("state");
   const error = searchParams.get("error");
 
   if (error) {
-    return NextResponse.redirect(new URL(`/?error=${encodeURIComponent(error)}`, request.url));
+    return NextResponse.redirect(new URL(`/?error=${encodeURIComponent(error)}`, base));
   }
   // CSRF / integrity checks: state must match and the PKCE verifier must exist.
   if (!code || !state || state !== session.oauthState || !session.codeVerifier) {
-    return NextResponse.redirect(new URL("/?error=invalid_state", request.url));
+    return NextResponse.redirect(new URL("/?error=invalid_state", base));
   }
 
   const tokens = await exchangeCodeForTokens(code, session.codeVerifier);
@@ -25,5 +27,5 @@ export async function GET(request: NextRequest) {
   session.oauthState = undefined;
   await session.save();
 
-  return NextResponse.redirect(new URL("/dashboard", request.url));
+  return NextResponse.redirect(new URL("/dashboard", base));
 }

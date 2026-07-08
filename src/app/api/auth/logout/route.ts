@@ -1,8 +1,9 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { env } from "@/lib/env";
 import { getSession } from "@/lib/session";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   const session = await getSession();
   session.destroy();
-  return NextResponse.redirect(new URL("/", request.url));
+  return NextResponse.redirect(new URL("/", env.appBaseUrl()));
 }

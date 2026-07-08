@@ -14,6 +14,9 @@ export interface SessionData {
   accessToken?: string;
   refreshToken?: string;
   expiresAt?: number; // epoch milliseconds
+  // Identity (set at /callback) — used as the per-user cache key.
+  userId?: string;
+  displayName?: string;
 }
 
 function sessionOptions(): SessionOptions {

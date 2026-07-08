@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { env } from "@/lib/env";
 import { getSession } from "@/lib/session";
-import { exchangeCodeForTokens } from "@/lib/spotify";
+import { exchangeCodeForTokens, spotifyGet } from "@/lib/spotify";
 
 export async function GET(request: NextRequest) {
   const session = await getSession();
@@ -25,6 +25,16 @@ export async function GET(request: NextRequest) {
   session.expiresAt = Date.now() + tokens.expires_in * 1000;
   session.codeVerifier = undefined;
   session.oauthState = undefined;
+
+  // Capture identity for use as the per-user stats cache key.
+  const profile = await spotifyGet<{ id: string; display_name?: string }>(
+    "/me",
+    tokens.access_token,
+  );
+  if (profile.data) {
+    session.userId = profile.data.id;
+    session.displayName = profile.data.display_name;
+  }
   await session.save();
 
   return NextResponse.redirect(new URL("/dashboard", base));

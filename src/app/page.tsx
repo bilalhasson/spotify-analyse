@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Barcode, Receipt } from "@/components/receipt";
 
 export default function Home() {
@@ -22,6 +23,12 @@ export default function Home() {
         >
           Log in with Spotify
         </a>
+        <Link
+          href="/demo"
+          className="action mt-2 block text-center font-mono text-xs text-paper-muted hover:text-accent"
+        >
+          or see a sample (no login) →
+        </Link>
         <Barcode />
       </Receipt>
     </main>

@@ -17,20 +17,25 @@ export function ReceiptStage({
   initialRange,
   models,
   shareTokens,
+  demo = false,
 }: {
   initialRange: TimeRange;
   models: Record<TimeRange, ReceiptModel>;
   shareTokens: Record<TimeRange, string>;
+  // In demo mode the nav drops session-only actions (refresh/logout) and points
+  // at public routes, so the whole thing works with no login.
+  demo?: boolean;
 }) {
   const [range, setRange] = useState<TimeRange>(initialRange);
   const [tick, setTick] = useState(0);
   const [copied, setCopied] = useState(false);
+  const basePath = demo ? "/demo" : "/dashboard";
 
   function select(next: TimeRange) {
     setRange(next);
     setTick((t) => t + 1); // force a remount so re-selecting the same range replays
     setCopied(false);
-    window.history.replaceState(null, "", `/dashboard?range=${next}`);
+    window.history.replaceState(null, "", `${basePath}?range=${next}`);
   }
 
   async function share() {
@@ -64,20 +69,33 @@ export function ReceiptStage({
         </button>
         <a
           className="action hover:text-accent"
-          href={`/api/receipt-image?range=${range}`}
+          href={demo ? `/api/share-image?t=${shareTokens[range]}` : `/api/receipt-image?range=${range}`}
           download={`receipt-${range}.png`}
         >
           download
         </a>
-        <Link className="action hover:text-accent" href="/playlists">
-          playlists
-        </Link>
-        <a className="action hover:text-accent" href={`/api/stats/refresh?range=${range}`}>
-          refresh
-        </a>
-        <a className="action hover:text-accent" href="/api/auth/logout">
-          log out
-        </a>
+        {demo ? (
+          <>
+            <Link className="action hover:text-accent" href="/demo/playlists">
+              playlists
+            </Link>
+            <Link className="action hover:text-accent" href="/">
+              make your own
+            </Link>
+          </>
+        ) : (
+          <>
+            <Link className="action hover:text-accent" href="/playlists">
+              playlists
+            </Link>
+            <a className="action hover:text-accent" href={`/api/stats/refresh?range=${range}`}>
+              refresh
+            </a>
+            <a className="action hover:text-accent" href="/api/auth/logout">
+              log out
+            </a>
+          </>
+        )}
       </nav>
     </div>
   );

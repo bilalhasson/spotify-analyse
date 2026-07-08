@@ -314,6 +314,7 @@ src/
     loading.tsx · error.tsx · not-found.tsx   # branded receipt states
     dashboard/page.tsx     # prefetches all 3 ranges; renders <ReceiptStage>
     playlists/page.tsx     # playlist Library receipt
+    demo/page.tsx · demo/playlists/page.tsx  # PUBLIC demo (sample data, no login)
     s/page.tsx      # PUBLIC share page — renders a token's receipt + OG/Twitter meta
     api/
       og/route.tsx          # PUBLIC static 1200x630 brand card for link unfurls
@@ -338,7 +339,8 @@ New apps are heavily restricted, and the plan is built around what actually work
   related-artists, editorial/featured playlists (Nov 2024), **and playlist tracks
   (`/playlists/{id}/tracks`) — owned and followed alike** (found in Phase 4, Jul 2026).
 - **Development mode:** max **5 allowlisted users**, and the **app owner must have Spotify
-  Premium** (Feb 2026). No public signups.
+  Premium** (Feb 2026). No public signups — so a public **`/demo`** route renders the real UI
+  with sample data (`lib/sampleData.ts`, `DemoBanner`) for anyone who isn't allowlisted.
 - **Extended quota** (which would lift these) is org-only and unreachable for a portfolio app.
 
 `/api/probe` empirically records the live status of each endpoint for *this* app. Results for a

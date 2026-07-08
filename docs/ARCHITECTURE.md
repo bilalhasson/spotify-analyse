@@ -227,6 +227,25 @@ instant. The toggle is still real `?range=` links — it works without JS and st
 
 ---
 
+## Shareable image (Phase 3)
+
+The receipt exports to a **720×1280 PNG** (9:16, story-friendly) via **`next/og`** (Satori),
+server-rendered at `GET /api/receipt-image?range=` (auth-gated). The dashboard's "download" action
+saves it.
+
+Satori supports only a CSS subset — no Tailwind, no `mask`, no repeating gradients — so the image
+can't reuse the DOM `ReceiptCard`. Instead: **one model, two renderers.** `ReceiptImage` mirrors the
+layout with inline styles and a monospace face (**Geist Mono**, bundled in `src/og-fonts/` and read
+at request time — no network). Effects are re-created Satori-safe (barcode = discrete divs; scallops
+dropped). Both renderers share the `ReceiptModel` and the palette (`receiptTheme.ts`); the data-load
+is shared via `dashboardData.ts`.
+
+> **Link unfurl is a deliberate follow-up.** Unfurling needs a *public* image URL, but stats are
+> private and behind auth. v1 ships **download** (you post the image). True unfurl needs a public
+> shareable snapshot — a signed data-in-URL image or a stored snapshot — deferred to keep scope tight.
+
+---
+
 ## Deploy pipeline (push-to-deploy)
 
 No Railway CLI in the loop — `git push main` is the deploy trigger, gated by CI.
@@ -255,11 +274,16 @@ src/
     spotify.ts      # PKCE helpers, token exchange/refresh, API fetch, SCOPES
     musicData.ts    # MusicDataSource (top artists/tracks, recently-played; cached) + topGenres/decadeBreakdown
     receipt.ts      # buildReceiptModel view-model + topDecadeShare (pure, tested)
+    dashboardData.ts# loadReceiptModel(s): shared data-load used by page + image route
+    receiptTheme.ts # palette constants for the Satori image (inline styles)
+    og.tsx          # renderReceiptImage(model) -> next/og ImageResponse (bundled fonts)
+  og-fonts/         # Geist Mono woff (400/700), read at request time for the PNG
   components/
     ReceiptStage.tsx       # client: range state + in-place line-reveal on toggle
     TimeRangeToggle.tsx    # client: progressive-enhanced range links
-    receipt/               # receipt design-system primitives + composed ReceiptCard
+    receipt/               # receipt renderers + primitives
       Receipt · Stamp · Section · RankRow · Row · Barcode · ReceiptCard · index.ts
+      ReceiptImage.tsx     # Satori-only renderer for the shareable PNG
   app/
     page.tsx        # landing — receipt with "Log in with Spotify"
     dashboard/page.tsx     # prefetches all 3 ranges; renders <ReceiptStage>
@@ -269,6 +293,7 @@ src/
       auth/refresh/route.ts   # renew an expired access token
       auth/logout/route.ts    # destroy the session
       stats/refresh/route.ts  # purge the user's cached stats (revalidateTag)
+      receipt-image/route.tsx # auth-gated PNG of the receipt (next/og), ?range=
       probe/route.ts          # record which endpoints return 200 vs 403
 .env.example        # required env vars (PKCE — no client secret)
 ```
@@ -312,5 +337,6 @@ Phase 1) so the source is swappable.
   recently-played, decade mix, per-user caching.
 - **Phase 2 ✅** — retro-receipt design system: tokens, receipt component library, `ReceiptCard`,
   and an animated in-place range toggle (line-reveal print).
-- **Phase 3** — shareable receipt image (the viral mechanic).
+- **Phase 3 (in progress)** — shareable receipt image: 720×1280 PNG via next/og + download ✅;
+  public share-link unfurl deferred.
 - **Phase 4** — playlist analysis.

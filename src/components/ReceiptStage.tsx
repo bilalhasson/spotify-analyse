@@ -43,11 +43,15 @@ export function ReceiptStage({
       </p>
 
       <nav className="flex gap-4 font-mono text-xs text-foreground/50">
+        <a
+          className="font-bold text-accent transition-colors hover:opacity-70"
+          href={`/api/receipt-image?range=${range}`}
+          download={`receipt-${range}.png`}
+        >
+          download
+        </a>
         <a className="transition-colors hover:text-accent" href={`/api/stats/refresh?range=${range}`}>
           refresh
-        </a>
-        <a className="transition-colors hover:text-accent" href="/api/probe">
-          probe
         </a>
         <a className="transition-colors hover:text-accent" href="/api/auth/logout">
           log out

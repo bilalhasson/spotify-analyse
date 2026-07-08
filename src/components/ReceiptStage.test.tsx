@@ -27,7 +27,10 @@ describe("ReceiptStage", () => {
       long_term: model("LONGY"),
     };
 
-    render(<ReceiptStage initialRange="medium_term" models={models} />);
+    const shareTokens = { short_term: "a", medium_term: "b", long_term: "c" };
+    render(
+      <ReceiptStage initialRange="medium_term" models={models} shareTokens={shareTokens} />,
+    );
     expect(screen.getByRole("heading", { name: /middy/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("link", { name: /4 weeks/i }));

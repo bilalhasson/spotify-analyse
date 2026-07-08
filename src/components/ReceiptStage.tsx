@@ -15,17 +15,32 @@ import { TimeRangeToggle } from "@/components/TimeRangeToggle";
 export function ReceiptStage({
   initialRange,
   models,
+  shareTokens,
 }: {
   initialRange: TimeRange;
   models: Record<TimeRange, ReceiptModel>;
+  shareTokens: Record<TimeRange, string>;
 }) {
   const [range, setRange] = useState<TimeRange>(initialRange);
   const [tick, setTick] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   function select(next: TimeRange) {
     setRange(next);
     setTick((t) => t + 1); // force a remount so re-selecting the same range replays
+    setCopied(false);
     window.history.replaceState(null, "", `/dashboard?range=${next}`);
+  }
+
+  async function share() {
+    const url = `${window.location.origin}/s?t=${shareTokens[range]}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      window.prompt("Copy your share link:", url);
+    }
   }
 
   const model = models[range];
@@ -42,9 +57,12 @@ export function ReceiptStage({
         Showing {model.rangeLabel}
       </p>
 
-      <nav className="flex gap-4 font-mono text-xs text-foreground/50">
+      <nav className="flex items-center gap-4 font-mono text-xs text-foreground/50">
+        <button type="button" onClick={share} className="font-bold text-accent transition-opacity hover:opacity-70">
+          {copied ? "link copied!" : "share"}
+        </button>
         <a
-          className="font-bold text-accent transition-colors hover:opacity-70"
+          className="transition-colors hover:text-accent"
           href={`/api/receipt-image?range=${range}`}
           download={`receipt-${range}.png`}
         >

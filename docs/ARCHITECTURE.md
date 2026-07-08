@@ -240,9 +240,13 @@ at request time — no network). Effects are re-created Satori-safe (barcode = d
 dropped). Both renderers share the `ReceiptModel` and the palette (`receiptTheme.ts`); the data-load
 is shared via `dashboardData.ts`.
 
-> **Link unfurl is a deliberate follow-up.** Unfurling needs a *public* image URL, but stats are
-> private and behind auth. v1 ships **download** (you post the image). True unfurl needs a public
-> shareable snapshot — a signed data-in-URL image or a stored snapshot — deferred to keep scope tight.
+**Public share + unfurl.** Unfurling needs a *public* image URL, but stats live behind auth — so
+sharing mints a **signed, stateless token**: the receipt model is base64url-encoded and HMAC-signed
+(with `SESSION_SECRET`) into the URL (`shareToken.ts`). A public `/s?t=` page carries OG/Twitter meta
+whose image is a public `GET /api/share-image?t=` PNG, so crawlers unfurl it with **no session and no
+datastore**. The signature means only the server can mint a token, so visitors can't render arbitrary
+content under our domain. Tokens are compact (~600 chars, well within URL limits). The dashboard
+**share** action copies the `/s?t=` link.
 
 ---
 
@@ -277,6 +281,7 @@ src/
     dashboardData.ts# loadReceiptModel(s): shared data-load used by page + image route
     receiptTheme.ts # palette constants for the Satori image (inline styles)
     og.tsx          # renderReceiptImage(model) -> next/og ImageResponse (bundled fonts)
+    shareToken.ts   # sign/verify stateless share tokens (HMAC) for public unfurl
   og-fonts/         # Geist Mono woff (400/700), read at request time for the PNG
   components/
     ReceiptStage.tsx       # client: range state + in-place line-reveal on toggle
@@ -287,6 +292,7 @@ src/
   app/
     page.tsx        # landing — receipt with "Log in with Spotify"
     dashboard/page.tsx     # prefetches all 3 ranges; renders <ReceiptStage>
+    s/page.tsx      # PUBLIC share page — renders a token's receipt + OG/Twitter meta
     api/
       auth/login/route.ts     # start the OAuth handshake
       auth/callback/route.ts  # verify state, exchange code, store tokens + identity
@@ -294,6 +300,7 @@ src/
       auth/logout/route.ts    # destroy the session
       stats/refresh/route.ts  # purge the user's cached stats (revalidateTag)
       receipt-image/route.tsx # auth-gated PNG of the receipt (next/og), ?range=
+      share-image/route.tsx   # PUBLIC signed PNG for unfurl, ?t=<token>
       probe/route.ts          # record which endpoints return 200 vs 403
 .env.example        # required env vars (PKCE — no client secret)
 ```
@@ -337,6 +344,6 @@ Phase 1) so the source is swappable.
   recently-played, decade mix, per-user caching.
 - **Phase 2 ✅** — retro-receipt design system: tokens, receipt component library, `ReceiptCard`,
   and an animated in-place range toggle (line-reveal print).
-- **Phase 3 (in progress)** — shareable receipt image: 720×1280 PNG via next/og + download ✅;
-  public share-link unfurl deferred.
+- **Phase 3 ✅** — shareable receipt image: 720×1280 PNG via next/og, download, and a public
+  signed share link that unfurls (`/s?t=`).
 - **Phase 4** — playlist analysis.

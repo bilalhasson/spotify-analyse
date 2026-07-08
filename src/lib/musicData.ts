@@ -71,7 +71,8 @@ export function createSpotifyDataSource(
           return (data?.items ?? []).map((a) => ({
             id: a.id,
             name: a.name,
-            genres: a.genres,
+            // Spotify can omit `genres` for some artists — default to [].
+            genres: Array.isArray(a.genres) ? a.genres : [],
           }));
         },
         ["top-artists", userId, range, String(limit)],
@@ -106,7 +107,7 @@ export function topGenres(
 ): { genre: string; count: number }[] {
   const counts = new Map<string, number>();
   for (const artist of artists) {
-    for (const genre of artist.genres) {
+    for (const genre of artist.genres ?? []) {
       counts.set(genre, (counts.get(genre) ?? 0) + 1);
     }
   }

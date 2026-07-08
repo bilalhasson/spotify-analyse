@@ -8,6 +8,9 @@ rendered as a shareable "receipt". A portfolio project built around a correct, s
 ⚙️ **Setup guide:** [`docs/SETUP.md`](docs/SETUP.md)
 📐 **Architecture & auth deep-dive:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
+**Status:** live — Spotify OAuth (PKCE) + a stats dashboard (top artists/tracks, genre
+breakdown, 4wk/6mo/all-time toggle), with per-user cached data.
+
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v4 · iron-session · pnpm 10.25 ·

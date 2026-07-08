@@ -151,6 +151,44 @@ recommends both.
 
 ---
 
+## Data layer & caching (Phase 1)
+
+All music data is read through a **`MusicDataSource`** interface (`src/lib/musicData.ts`), so the
+underlying provider stays swappable. The only implementation today is Spotify
+(`createSpotifyDataSource`).
+
+Stats are cached with the **Next.js Data Cache** (`unstable_cache`) — no database needed:
+
+- **Per-user keys** — entries are keyed by `["top-artists", userId, range]` etc., so users never
+  see each other's data.
+- **Token as a closure, not a key** — the access token is captured inside the cached function,
+  not part of the cache key, so the hourly token refresh doesn't bust the cache. The token is
+  only used on a miss.
+- **TTL + tag** — entries revalidate after 1h and are tagged `stats:<userId>`.
+- **Manual refresh** — `GET /api/stats/refresh` calls `revalidateTag("stats:<userId>", { expire: 0 })`
+  (Next 16 requires the profile arg) to purge that user's stats on demand, then bounces back.
+
+```mermaid
+flowchart LR
+  Page["/dashboard?range=..."] --> DS["MusicDataSource<br/>per-user, per-range"]
+  DS --> C{"cached?<br/>tag stats:userId"}
+  C -->|hit| Ret["return cached stats"]
+  C -->|miss| F["fetch Spotify (no-store)"]
+  F --> Store["store under tag, TTL 1h"]
+  Store --> Ret
+  Refresh["/api/stats/refresh"] -->|revalidateTag| C
+```
+
+The dashboard (`src/app/dashboard/page.tsx`) is a Server Component that reads the range from
+`?range=` (`short_term` / `medium_term` / `long_term`), fetches top artists + top tracks in
+parallel, derives a genre breakdown (`topGenres`), and renders them receipt-style.
+
+> **Shape safety:** Spotify responses have optional/missing fields (e.g. an artist may have no
+> `genres`). Defaults are applied at the `MusicDataSource` mapping boundary so a missing field
+> can't crash a render.
+
+---
+
 ## Deploy pipeline (push-to-deploy)
 
 No Railway CLI in the loop — `git push main` is the deploy trigger, gated by CI.
@@ -174,17 +212,19 @@ red build never ships. CI config: `.github/workflows/ci.yml`.
 ```
 src/
   lib/
-    env.ts          # lazy, validated access to the 3 env vars
-    session.ts      # iron-session config + getSession() + needsRefresh()
+    env.ts          # lazy env access (client id, redirect uri, session secret, base url)
+    session.ts      # iron-session config; getSession(); needsRefresh(); userId/displayName
     spotify.ts      # PKCE helpers, token exchange/refresh, API fetch, SCOPES
+    musicData.ts    # MusicDataSource interface + Spotify impl (cached), topGenres()
   app/
     page.tsx        # landing — "LOG IN WITH SPOTIFY"
-    dashboard/page.tsx     # protected Server Component — top 5 artists
+    dashboard/page.tsx     # protected Server Component — top artists/tracks, genres, range toggle
     api/
       auth/login/route.ts     # start the OAuth handshake
-      auth/callback/route.ts  # verify state, exchange code, store tokens
+      auth/callback/route.ts  # verify state, exchange code, store tokens + identity
       auth/refresh/route.ts   # renew an expired access token
       auth/logout/route.ts    # destroy the session
+      stats/refresh/route.ts  # purge the user's cached stats (revalidateTag)
       probe/route.ts          # record which endpoints return 200 vs 403
 .env.example        # required env vars (PKCE — no client secret)
 ```
@@ -224,8 +264,8 @@ Phase 1) so the source is swappable.
 ## Roadmap
 
 - **Phase 0 ✅** — walking skeleton, live OAuth (PKCE), endpoint probe.
-- **Phase 1** — core stats dashboard: top tracks/artists (3 time ranges), genre breakdown,
-  recently-played + decade mix, with caching.
+- **Phase 1 (in progress)** — core stats dashboard: top tracks/artists (3 ranges) + genre
+  breakdown + caching ✅; recently-played + decade mix (next).
 - **Phase 2** — retro-receipt design system.
 - **Phase 3** — shareable receipt image (the viral mechanic).
 - **Phase 4** — playlist analysis.

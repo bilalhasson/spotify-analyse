@@ -15,13 +15,16 @@ export default function Home() {
           </div>
           <div className="flex justify-between">
             <dt>AUTH</dt>
-            <dd>NOT WIRED YET</dd>
+            <dd>PKCE READY</dd>
           </div>
         </dl>
         <hr className="my-4 border-dashed border-current/30" />
-        <p className="text-center text-xs opacity-70">
-          deployed &amp; live — login arrives next
-        </p>
+        <a
+          href="/api/auth/login"
+          className="block border border-dashed border-current/50 py-2 text-center tracking-widest hover:bg-white/10"
+        >
+          LOG IN WITH SPOTIFY
+        </a>
       </div>
     </main>
   );

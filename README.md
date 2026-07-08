@@ -5,6 +5,7 @@ rendered as a shareable "receipt". A portfolio project built around a correct, s
 **OAuth 2.0 (Authorization Code + PKCE)** flow against the Spotify Web API.
 
 🔗 **Live:** https://spotify-analyse-production.up.railway.app
+⚙️ **Setup guide:** [`docs/SETUP.md`](docs/SETUP.md)
 📐 **Architecture & auth deep-dive:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
 ## Stack
@@ -21,8 +22,9 @@ pnpm dev                       # http://127.0.0.1:3000
 ```
 
 You need a Spotify app (Client ID) with `http://127.0.0.1:3000/api/auth/callback` registered as
-a redirect URI, and your Spotify account added to the app's allowlist. No client secret is
-required — this is a pure PKCE flow. See [`.env.example`](.env.example).
+a redirect URI, and your account on its allowlist. No client secret — it's a pure PKCE flow.
+**Full walkthrough (Spotify app, env vars, Railway config, troubleshooting):
+[`docs/SETUP.md`](docs/SETUP.md).**
 
 ## Scripts
 
